@@ -3,7 +3,7 @@ langchain
 langchain-core
 langchain-community
 langchain-groq
+langchain-openai
 pypdf
 faiss-cpu
-sentence-transformers
 tiktoken
