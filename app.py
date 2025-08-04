@@ -26,12 +26,10 @@ with st.sidebar:
     [এখান থেকে বিনামূল্যে আপনার Groq API Key নিন](https://console.groq.com/keys)।
     """)
     
-    # Groq API Key ইনপুট
     groq_api_key = st.text_input("🔑 আপনার Groq API Key দিন", type="password", placeholder="gsk_...")
     
     st.markdown("---")
     
-    # LLM মডেল নির্বাচন
     llm_model = st.selectbox(
         "🧠 LLM মডেল বেছে নিন",
         ("Llama3-70b-8192", "Llama3-8b-8192"),
@@ -41,22 +39,19 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # PDF ফাইল আপলোড
     uploaded_file = st.file_uploader("📄 আপনার PDF ডকুমেন্টটি আপলোড করুন (বাংলা/ইংরেজি)", type="pdf")
     
     st.markdown("---")
     st.info("আপনার ডেটা সম্পূর্ণ সুরক্ষিত। API Key বা ডকুমেন্টের কোনো তথ্য আমরা সংরক্ষণ করি না।")
 
-# --- ক্যাশিং ফাংশন (পারফরম্যান্স বাড়ানোর জন্য) ---
+# --- ক্যাশিং ফাংশন ---
 
-# বহুভাষিক এমবেডিং মডেলটি একবারই লোড হবে
 @st.cache_resource
 def load_multilingual_embeddings():
-    st.info("বহুভাষিক এমবেডিং মডেল (bge-m3) লোড করা হচ্ছে... (প্রথমবার একটু সময় লাগতে পারে)")
-    return HuggingFaceEmbeddings(model_name="BAAI/bge-m3")
+    st.info("বহুভাষিক এমবেডিং মডেল লোড করা হচ্ছে... (প্রথমবার একটু সময় লাগতে পারে)")
+    # CORRECTED: Using a smaller, memory-efficient multilingual model
+    return HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
 
-# ভেক্টর স্টোর তৈরি এবং ক্যাশ করা
-# CORRECTED FUNCTION
 @st.cache_data(show_spinner="ডকুমেন্ট প্রসেস করা হচ্ছে...")
 def create_vector_store(_file_content):
     if not _file_content:
@@ -69,10 +64,9 @@ def create_vector_store(_file_content):
     loader = PyPDFLoader(tmp_file_path)
     documents = loader.load_and_split()
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = text_splitter.split_documents(documents)
-
-    # এমবেডিং মডেলটি এই ফাংশনের ভেতরে কল করা হচ্ছে
+    
     embeddings = load_multilingual_embeddings()
 
     vectorstore = FAISS.from_documents(chunks, embeddings)
@@ -86,20 +80,14 @@ if not groq_api_key:
 elif not uploaded_file:
     st.warning("👈 অনুগ্রহ করে সাইডবারে একটি PDF ফাইল আপলোড করুন।")
 else:
-    # ফাইল কন্টেন্ট পড়া
     file_content = uploaded_file.getvalue()
-    
-    # ভেক্টর স্টোর তৈরি বা ক্যাশ থেকে লোড করা
-    # CORRECTED FUNCTION CALL
     vectorstore = create_vector_store(file_content)
     
     if vectorstore:
         st.success(f"✅ ডকুমেন্ট সফলভাবে প্রসেস করা হয়েছে। এখন আপনি '{llm_model}' ব্যবহার করে প্রশ্ন করতে পারেন।")
-
-        # ব্যবহারকারীর প্রশ্ন ইনপুট
         query = st.text_input(
             "❓ ডকুমেন্ট সম্পর্কে আপনার প্রশ্ন এখানে লিখুন (বাংলা বা ইংরেজিতে):",
-            placeholder="What are the key liabilities for the contractor? / ஒப்பந்தকারীর মূল দায়বদ্ধতাগুলো কী কী?"
+            placeholder="What are the key liabilities for the contractor? / ঠিকাদারের মূল দায়বদ্ধতাগুলো কী কী?"
         )
 
         if st.button("تحليل করুন (Analyze)"):
@@ -108,10 +96,7 @@ else:
             else:
                 with st.spinner(f"Llama 3 আপনার প্রশ্নের উত্তর খুঁজছে... অনুগ্রহ করে অপেক্ষা করুন।"):
                     try:
-                        # LLM মডেল ইনিশিয়ালাইজ করা
                         llm = ChatGroq(temperature=0, groq_api_key=groq_api_key, model_name=llm_model)
-
-                        # বহুভাষিক প্রম্পট টেমপ্লেট
                         prompt_template = """
                         You are "GovAI Pro", a highly intelligent legal and policy analysis AI.
                         Your task is to answer the user's question based ONLY on the provided context from a legal or government document.
@@ -134,7 +119,6 @@ else:
                         """
                         PROMPT = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
 
-                        # RetrievalQA চেইন তৈরি করা
                         qa_chain = RetrievalQA.from_chain_type(
                             llm=llm,
                             chain_type="stuff",
@@ -142,10 +126,7 @@ else:
                             chain_type_kwargs={"prompt": PROMPT}
                         )
 
-                        # ফলাফল জেনারেট করা
                         result = qa_chain.invoke({"query": query})
-
-                        # ফলাফল প্রদর্শন
                         st.subheader("📄 GovAI Pro বিশ্লেষণ:")
                         st.markdown(result["result"])
 
