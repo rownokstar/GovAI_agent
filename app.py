@@ -18,18 +18,10 @@ st.markdown("""
 এটি এখন সম্পূর্ণ API-নির্ভর, তাই মেমোরি ক্র্যাশের কোনো সম্ভাবনা নেই।
 """)
 
-# --- সাইডবার: API কী, মডেল নির্বাচন এবং ফাইল আপলোড ---
+# --- সাইডবার: এখন শুধু মডেল ও ফাইল আপলোড ---
 with st.sidebar:
     st.header("🛠️ কনফিগারেশন")
-    st.markdown("এই অ্যাপটি চালানোর জন্য আপনার দুটি API Key প্রয়োজন হবে।")
-    
-    # Groq API Key
-    groq_api_key = st.text_input("🔑 Groq API Key (Llama 3-এর জন্য)", type="password", placeholder="gsk_...")
-    
-    # OpenAI API Key
-    openai_api_key = st.text_input("🔑 OpenAI API Key (Embedding-এর জন্য)", type="password", placeholder="sk_...")
-
-    st.markdown("---")
+    st.markdown("API Key-গুলো এখন Streamlit Secrets থেকে স্বয়ংক্রিয়ভাবে লোড হচ্ছে।")
     
     # LLM মডেল নির্বাচন
     llm_model = st.selectbox(
@@ -48,7 +40,6 @@ with st.sidebar:
 
 # --- ক্যাশিং ফাংশন ---
 
-# CORRECTED DECORATOR
 @st.cache_resource(show_spinner="ডকুমেন্ট প্রসেস করা হচ্ছে...")
 def create_vector_store(_file_content, _openai_api_key):
     if not _file_content:
@@ -76,8 +67,12 @@ def create_vector_store(_file_content, _openai_api_key):
 
 # --- মূল অ্যাপ্লিকেশন লজিক ---
 
+# Streamlit Secrets থেকে API Key লোড করা হচ্ছে
+groq_api_key = st.secrets.get("GROQ_API_KEY")
+openai_api_key = st.secrets.get("OPENAI_API_KEY")
+
 if not groq_api_key or not openai_api_key:
-    st.warning("👈 অনুগ্রহ করে সাইডবারে আপনার Groq এবং OpenAI API Key দুটিই দিন।")
+    st.warning("👈 অনুগ্রহ করে Streamlit Cloud-এর Settings > Secrets সেকশনে আপনার API Key যোগ করুন।")
 elif not uploaded_file:
     st.warning("👈 অনুগ্রহ করে সাইডবারে একটি PDF ফাইল আপলোড করুন।")
 else:
