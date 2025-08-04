@@ -7,3 +7,11 @@ langchain-openai
 pypdf
 faiss-cpu
 tiktoken
+# New libraries for file handling and export
+python-docx
+openpyxl
+unstructured
+lxml
+docx2txt
+fpdf2
+pandas
