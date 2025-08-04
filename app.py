@@ -48,8 +48,8 @@ with st.sidebar:
 
 # --- ক্যাশিং ফাংশন ---
 
-# ভেক্টর স্টোর তৈরি এবং ক্যাশ করা
-@st.cache_data(show_spinner="ডকুমেন্ট প্রসেস করা হচ্ছে...")
+# CORRECTED DECORATOR
+@st.cache_resource(show_spinner="ডকুমেন্ট প্রসেস করা হচ্ছে...")
 def create_vector_store(_file_content, _openai_api_key):
     if not _file_content:
         return None
@@ -64,7 +64,6 @@ def create_vector_store(_file_content, _openai_api_key):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = text_splitter.split_documents(documents)
     
-    # OpenAI Embedding API ব্যবহার করা হচ্ছে
     try:
         embeddings = OpenAIEmbeddings(openai_api_key=_openai_api_key)
         vectorstore = FAISS.from_documents(chunks, embeddings)
@@ -88,7 +87,7 @@ else:
     if vectorstore:
         st.success(f"✅ ডকুমেন্ট সফলভাবে প্রসেস করা হয়েছে। এখন আপনি '{llm_model}' ব্যবহার করে প্রশ্ন করতে পারেন।")
         query = st.text_input(
-            "❓ ডকুমেন্ট সম্পর্কে আপনার প্রশ্ন লিখুন (বাংলা বা ইংরেজিতে):",
+            "❓ ডকুমেন্ট সম্পর্কে আপনার প্রশ্ন এখানে লিখুন (বাংলা বা ইংরেজিতে):",
             placeholder="What are the key liabilities? / মূল দায়বদ্ধতাগুলো কী কী?"
         )
 
