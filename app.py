@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-import time  # নতুন ইম্পোর্ট
+import time
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_community.document_loaders import PyPDFLoader, CSVLoader, Docx2txtLoader, UnstructuredExcelLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -79,7 +79,6 @@ def get_vectorstore_from_file(uploaded_file):
         return None
 
 def get_history_aware_retriever(llm, retriever):
-    # CORRECTED PROMPT: Added strict language preservation instructions
     history_aware_prompt = ChatPromptTemplate.from_messages([
         ("system", "Given a chat history and a follow-up question, rephrase the question to be a standalone question. **Crucially, the rephrased question MUST be in the same language as the original follow-up question (English, Bengali, or Banglish).** Do not translate the question."),
         ("user", "{input}"),
@@ -115,19 +114,24 @@ def generate_pdf_report(chat_history):
     pdf = FPDF()
     pdf.add_page()
     try:
+        # This path works in Streamlit Cloud's default environment
         pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
         pdf.set_font('DejaVu', '', 12)
     except RuntimeError:
+        # Fallback for local environments that might not have the font
         pdf.set_font('Arial', '', 12)
         pdf.cell(0, 10, "Warning: DejaVuSans font not found. Using Arial (non-Unicode).", ln=True)
 
     pdf.cell(0, 10, txt="GovAI Pro - Chat Report", ln=True, align='C')
     for message in chat_history:
         role = "User" if isinstance(message, HumanMessage) else "Assistant"
+        # Encode to a basic encoding and decode back to handle potential problematic characters
         content = message.content.encode('latin-1', 'replace').decode('latin-1')
         pdf.multi_cell(0, 10, f"{role}: {content}")
         pdf.ln(5)
-    return pdf.output(dest='S').encode('latin-1')
+    
+    # CORRECTED LINE: pdf.output() now returns bytes directly.
+    return pdf.output()
 
 def generate_docx_report(chat_history):
     document = DocxDocument()
@@ -194,7 +198,6 @@ else:
             history_aware_retriever = get_history_aware_retriever(llm, retriever)
             rag_chain = get_conversational_rag_chain(history_aware_retriever)
             
-            # --- Streaming Response Logic ---
             def stream_chunks():
                 response_stream = rag_chain.stream({
                     "input": user_query,
@@ -203,7 +206,7 @@ else:
                 for chunk in response_stream:
                     if "answer" in chunk:
                         yield chunk["answer"]
-                        time.sleep(0.02)  # ADDED DELAY for typing effect
+                        time.sleep(0.02)
             
             full_response = st.write_stream(stream_chunks)
             st.session_state.chat_history.append(AIMessage(content=full_response))
