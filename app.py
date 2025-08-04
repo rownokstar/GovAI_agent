@@ -114,23 +114,19 @@ def generate_pdf_report(chat_history):
     pdf = FPDF()
     pdf.add_page()
     try:
-        # This path works in Streamlit Cloud's default environment
         pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
         pdf.set_font('DejaVu', '', 12)
     except RuntimeError:
-        # Fallback for local environments that might not have the font
         pdf.set_font('Arial', '', 12)
         pdf.cell(0, 10, "Warning: DejaVuSans font not found. Using Arial (non-Unicode).", ln=True)
 
     pdf.cell(0, 10, txt="GovAI Pro - Chat Report", ln=True, align='C')
     for message in chat_history:
         role = "User" if isinstance(message, HumanMessage) else "Assistant"
-        # Encode to a basic encoding and decode back to handle potential problematic characters
-        content = message.content.encode('latin-1', 'replace').decode('latin-1')
-        pdf.multi_cell(0, 10, f"{role}: {content}")
+        # CORRECTED: Passing the original unicode string directly to multi_cell
+        pdf.multi_cell(0, 10, f"{role}: {message.content}")
         pdf.ln(5)
     
-    # CORRECTED LINE: pdf.output() now returns bytes directly.
     return pdf.output()
 
 def generate_docx_report(chat_history):
