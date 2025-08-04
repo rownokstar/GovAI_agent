@@ -1,4 +1,6 @@
 import streamlit as st
+import os
+import time  # নতুন ইম্পোর্ট
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_community.document_loaders import PyPDFLoader, CSVLoader, Docx2txtLoader, UnstructuredExcelLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -8,7 +10,6 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-import os
 from fpdf import FPDF
 from docx import Document as DocxDocument
 import pandas as pd
@@ -50,18 +51,20 @@ def get_vectorstore_from_file(uploaded_file):
         with open(temp_file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
 
-        if file_extension == ".pdf":
-            loader = PyPDFLoader(temp_file_path)
-        elif file_extension == ".docx":
-            loader = Docx2txtLoader(temp_file_path)
-        elif file_extension == ".csv":
-            loader = CSVLoader(temp_file_path)
-        elif file_extension in [".xls", ".xlsx"]:
-            loader = UnstructuredExcelLoader(temp_file_path, mode="elements")
-        else:
+        loaders = {
+            ".pdf": PyPDFLoader,
+            ".docx": Docx2txtLoader,
+            ".csv": CSVLoader,
+            ".xls": UnstructuredExcelLoader,
+            ".xlsx": UnstructuredExcelLoader
+        }
+        loader_class = loaders.get(file_extension)
+
+        if loader_class is None:
             st.error("এই ফাইল ফরম্যাটটি সাপোর্ট করে না।")
             return None
-        
+            
+        loader = loader_class(temp_file_path)
         documents = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
         document_chunks = text_splitter.split_documents(documents)
@@ -76,8 +79,9 @@ def get_vectorstore_from_file(uploaded_file):
         return None
 
 def get_history_aware_retriever(llm, retriever):
+    # CORRECTED PROMPT: Added strict language preservation instructions
     history_aware_prompt = ChatPromptTemplate.from_messages([
-        ("system", "Given the following conversation, generate a search query to look up in order to get information relevant to the conversation."),
+        ("system", "Given a chat history and a follow-up question, rephrase the question to be a standalone question. **Crucially, the rephrased question MUST be in the same language as the original follow-up question (English, Bengali, or Banglish).** Do not translate the question."),
         ("user", "{input}"),
     ])
     return create_history_aware_retriever(llm, retriever, history_aware_prompt)
@@ -120,7 +124,6 @@ def generate_pdf_report(chat_history):
     pdf.cell(0, 10, txt="GovAI Pro - Chat Report", ln=True, align='C')
     for message in chat_history:
         role = "User" if isinstance(message, HumanMessage) else "Assistant"
-        # Handle potential encoding issues for the content
         content = message.content.encode('latin-1', 'replace').decode('latin-1')
         pdf.multi_cell(0, 10, f"{role}: {content}")
         pdf.ln(5)
@@ -162,7 +165,9 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file:
-    st.session_state.vector_store = get_vectorstore_from_file(uploaded_file)
+    if st.session_state.get("uploaded_file_name") != uploaded_file.name:
+        st.session_state.vector_store = get_vectorstore_from_file(uploaded_file)
+        st.session_state.uploaded_file_name = uploaded_file.name
 
 if st.session_state.vector_store is None:
     st.info("একটি ডকুমেন্ট আপলোড করে শুরু করুন।")
@@ -198,6 +203,7 @@ else:
                 for chunk in response_stream:
                     if "answer" in chunk:
                         yield chunk["answer"]
+                        time.sleep(0.02)  # ADDED DELAY for typing effect
             
             full_response = st.write_stream(stream_chunks)
             st.session_state.chat_history.append(AIMessage(content=full_response))
