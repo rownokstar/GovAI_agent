@@ -153,7 +153,7 @@ def generate_excel_report(chat_history):
 
 # --- সেশন স্টেট শুরু করা ---
 if "chat_history" not in st.session_state:
-    st.session_state.chat_history = [AIMessage(content="नमस्ते! আমি GovAI Pro। আপনার ডকুমেন্ট আপলোড করুন এবং প্রশ্ন জিজ্ঞাসা শুরু করুন।")]
+    st.session_state.chat_history = [AIMessage(content="Hi! আমি GovAI Pro। আপনার ডকুমেন্ট আপলোড করুন এবং প্রশ্ন জিজ্ঞাসা শুরু করুন।")]
 if "vector_store" not in st.session_state:
     st.session_state.vector_store = None
 
