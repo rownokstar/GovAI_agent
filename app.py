@@ -56,8 +56,9 @@ def load_multilingual_embeddings():
     return HuggingFaceEmbeddings(model_name="BAAI/bge-m3")
 
 # ভেক্টর স্টোর তৈরি এবং ক্যাশ করা
+# CORRECTED FUNCTION
 @st.cache_data(show_spinner="ডকুমেন্ট প্রসেস করা হচ্ছে...")
-def create_vector_store(_file_content, embeddings_model):
+def create_vector_store(_file_content):
     if not _file_content:
         return None
     
@@ -71,7 +72,10 @@ def create_vector_store(_file_content, embeddings_model):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150)
     chunks = text_splitter.split_documents(documents)
 
-    vectorstore = FAISS.from_documents(chunks, embeddings_model)
+    # এমবেডিং মডেলটি এই ফাংশনের ভেতরে কল করা হচ্ছে
+    embeddings = load_multilingual_embeddings()
+
+    vectorstore = FAISS.from_documents(chunks, embeddings)
     os.remove(tmp_file_path)
     return vectorstore
 
@@ -82,14 +86,12 @@ if not groq_api_key:
 elif not uploaded_file:
     st.warning("👈 অনুগ্রহ করে সাইডবারে একটি PDF ফাইল আপলোড করুন।")
 else:
-    # বহুভাষিক এমবেডিং মডেল লোড করা
-    embeddings = load_multilingual_embeddings()
-    
     # ফাইল কন্টেন্ট পড়া
     file_content = uploaded_file.getvalue()
     
     # ভেক্টর স্টোর তৈরি বা ক্যাশ থেকে লোড করা
-    vectorstore = create_vector_store(file_content, embeddings)
+    # CORRECTED FUNCTION CALL
+    vectorstore = create_vector_store(file_content)
     
     if vectorstore:
         st.success(f"✅ ডকুমেন্ট সফলভাবে প্রসেস করা হয়েছে। এখন আপনি '{llm_model}' ব্যবহার করে প্রশ্ন করতে পারেন।")
