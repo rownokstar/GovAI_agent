@@ -1,4 +1,3 @@
-
 # 🤖 GovAI Agent – Local LLM Government Assistant
 
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
@@ -11,7 +10,7 @@
 
 > 🚀 **Upload Government Data** → 🤖 **AI Parses & Understands** → 💬 **Get Instant, Contextual Answers**
 
-
+---
 
 ## 🌟 **Why GovAI Agent?**
 
@@ -27,7 +26,7 @@
 
 </div>
 
-
+---
 
 ## 🎯 **Key Features**
 
@@ -48,10 +47,9 @@
 - **Scalable Design**: Efficiently handles datasets of significant size.
 - **Error Resilience**: Built-in handling for data and model loading issues.
 
-
+---
 
 ## 🎯 **How It Works**
-
 
 ```mermaid
 graph TD
