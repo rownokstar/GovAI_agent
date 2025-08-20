@@ -1,6 +1,4 @@
-Okay, I've analyzed your GitHub repository `rownokstar/GovAI_agent`. Based on the files present (`app.py`, `requirements.txt`, the structure, and the code content which uses Llama 3 via Hugging Face transformers), and using the style from the previous `README.md` you had me create, here is a new `README.md` tailored for your `GovAI_agent` repository:
 
-```markdown
 # 🤖 GovAI Agent – Local LLM Government Assistant
 
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
@@ -13,7 +11,7 @@ Okay, I've analyzed your GitHub repository `rownokstar/GovAI_agent`. Based on th
 
 > 🚀 **Upload Government Data** → 🤖 **AI Parses & Understands** → 💬 **Get Instant, Contextual Answers**
 
----
+
 
 ## 🌟 **Why GovAI Agent?**
 
@@ -29,7 +27,7 @@ Okay, I've analyzed your GitHub repository `rownokstar/GovAI_agent`. Based on th
 
 </div>
 
----
+
 
 ## 🎯 **Key Features**
 
@@ -50,11 +48,11 @@ Okay, I've analyzed your GitHub repository `rownokstar/GovAI_agent`. Based on th
 - **Scalable Design**: Efficiently handles datasets of significant size.
 - **Error Resilience**: Built-in handling for data and model loading issues.
 
----
+
 
 ## 🎯 **How It Works**
 
-```mermaid
+
 graph TD
     A[User Uploads Dataset] --> B[Auto Data Processing]
     B --> C[Text Embedding (Sentence Transformers)]
@@ -68,9 +66,6 @@ graph TD
     J --> K[Local LLM Inference (Hugging Face)]
     K --> L[Generate Contextual Answer]
     L --> M[Display Answer + Thinking Steps]
-```
-
----
 
 ## 🛠️ **Technology Stack**
 
