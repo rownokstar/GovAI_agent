@@ -1,6 +1,4 @@
-Yes, I can create the `README.md` file content as a single code snippet. Here it is:
 
-```markdown
 # 🤖 GovAI Agent – Local LLM Government Assistant
 
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
@@ -68,7 +66,7 @@ graph TD
     J --> K[Local LLM Inference (Hugging Face)]
     K --> L[Generate Contextual Answer]
     L --> M[Display Answer + Thinking Steps]
-```
+
 
 ---
 
