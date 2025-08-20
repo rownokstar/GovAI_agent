@@ -53,6 +53,7 @@
 ## 🎯 **How It Works**
 
 
+```mermaid
 graph TD
     A[User Uploads Dataset] --> B[Auto Data Processing]
     B --> C[Text Embedding (Sentence Transformers)]
@@ -66,7 +67,6 @@ graph TD
     J --> K[Local LLM Inference (Hugging Face)]
     K --> L[Generate Contextual Answer]
     L --> M[Display Answer + Thinking Steps]
-
 ## 🛠️ **Technology Stack**
 
 <div align="center">
